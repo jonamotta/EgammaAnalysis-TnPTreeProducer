@@ -29,7 +29,7 @@ registerOption('includeSUSY', False,    'Add also the variables used by SUSY')
 
 registerOption('HLTname',     'HLT',    'HLT process name (default HLT)', optionType=VarParsing.varType.string) # HLTname was HLT2 in now outdated reHLT samples
 registerOption('GT',          'auto',   'Global Tag to be used', optionType=VarParsing.varType.string)
-registerOption('era',         '2018',   'Data-taking era: 2016, 2017, 2018, 2022, 2023, 2023preBPIX, 2023postBPIX, UL2017 or UL2018', optionType=VarParsing.varType.string)
+registerOption('era',         '2018',   'Data-taking era: 2016, 2017, 2018, 2022preEE, 2022postEE, 2023, 2023preBPIX, 2023postBPIX, UL2017 or UL2018', optionType=VarParsing.varType.string)
 registerOption('logLevel',    'INFO',   'Loglevel: could be DEBUG, INFO, WARNING, ERROR', optionType=VarParsing.varType.string)
 
 registerOption('L1Threshold',  0,       'Threshold for L1 matched objects', optionType=VarParsing.varType.int)
@@ -47,7 +47,7 @@ if varOptions.isAOD and varOptions.doTrigger:  log.warning('AOD is not supported
 if not varOptions.isAOD and varOptions.doRECO: log.warning('miniAOD is not supported for doRECO, please consider using AOD')
 
 from EgammaAnalysis.TnPTreeProducer.cmssw_version import isReleaseAbove
-if varOptions.era not in ['2016', '2017', '2018', '2022', '2023', '2023preBPIX', '2023postBPIX', 'UL2016preVFP', 'UL2016postVFP', 'UL2017', 'UL2018']: 
+if varOptions.era not in ['2016', '2017', '2018', '2022preEE', '2022postEE', '2023', '2023preBPIX', '2023postBPIX', 'UL2016preVFP', 'UL2016postVFP', 'UL2017', 'UL2018']:
   log.error('%s is not a valid era' % varOptions.era)
 #if ('UL' in varOptions.era)!=(isReleaseAbove(10, 6)):
   #log.error('Inconsistent release for era %s. Use CMSSW_10_6_X for UL and CMSSW_10_2_X for rereco' % varOptions.era)
@@ -68,7 +68,7 @@ options['useAOD']               = varOptions.isAOD
 options['use80X']               = varOptions.is80X
 
 options['HLTProcessName']       = varOptions.HLTname
-options['era']                  = varOptions.era
+options['era']                  = varOptions.era if "2022" not in varOptions.era else varOptions.era.split("p")[0]
 
 options['ELECTRON_COLL']        = "gedGsfElectrons" if options['useAOD'] else "slimmedElectrons"
 options['PHOTON_COLL']          = "gedPhotons" if options['useAOD'] else "slimmedPhotons"
@@ -106,7 +106,8 @@ if varOptions.GT == "auto":
     if options['era'] == 'UL2016postVFP': options['GLOBALTAG'] = '106X_mcRun2_asymptotic_v15'
     if options['era'] == 'UL2017': options['GLOBALTAG'] = '106X_dataRun2_v28'
     if options['era'] == 'UL2018': options['GLOBALTAG'] = '106X_dataRun2_v28'
-    if options['era'] == '2022': options['GLOBALTAG'] = 'auto:phase1_2022_realistic' 
+    if varOptions.era == '2022preEE': options['GLOBALTAG'] = '130X_mcRun3_2022_realistic_v5'
+    if varOptions.era == '2022postEE': options['GLOBALTAG'] = '130X_mcRun3_2022_realistic_postEE_v6'
     if options['era'] == '2023preBPIX': options['GLOBALTAG'] = '130X_mcRun3_2023_realistic_v14' 
     if options['era'] == '2023postBPIX': options['GLOBALTAG'] = '130X_mcRun3_2023_realistic_postBPix_v2' 
   else:
@@ -117,8 +118,10 @@ if varOptions.GT == "auto":
     if options['era'] == 'UL2016postVFP': options['GLOBALTAG'] = '106X_dataRun2_v32'
     if options['era'] == 'UL2017': options['GLOBALTAG'] = '106X_mc2017_realistic_v7'
     if options['era'] == 'UL2018': options['GLOBALTAG'] = '106X_upgrade2018_realistic_v11_L1v1'
-    if options['era'] == '2022': options['GLOBALTAG'] = '124X_dataRun3_Prompt_v10'
-    if options['era'] == '2023': options['GLOBALTAG'] = '130X_dataRun3_PromptAnalysis_v1'
+    if varOptions.era == '2022preEE': options['GLOBALTAG'] = '130X_dataRun3_v2'
+    if varOptions.era == '2022postEE': options['GLOBALTAG'] = '130X_dataRun3_PromptAnalysis_v1'
+    if options['era'] == '2023preBPIX': options['GLOBALTAG'] = '130X_dataRun3_PromptAnalysis_v1'
+    if options['era'] == '2023postBPIX': options['GLOBALTAG'] = '130X_dataRun3_PromptAnalysis_v1'
 else:
   options['GLOBALTAG'] = varOptions.GT
 
@@ -143,6 +146,12 @@ doubleEle33_leg1_allFilters = {'passHLTEGL1SingleAndDoubleEGNonIsoOrWithEG26With
 
 #HLT_DoubleEle33_CaloIdL_MW
 doubleEle33_leg2_allFilters = {'passHLTDiEG33EtUnseededFilter': cms.vstring('hltDiEG33EtUnseededFilter'), 'passHLTDiEG33HEUnseededFilter': cms.vstring('hltDiEG33HEUnseededFilter'), 'passHLTDiEG33CaloIdLClusterShapeUnseededFilter': cms.vstring('hltDiEG33CaloIdLClusterShapeUnseededFilter'), 'passHLTDiEle33CaloIdLPixelMatchUnseededFilter': cms.vstring('hltDiEle33CaloIdLPixelMatchUnseededFilter')}
+
+#HLT_Ele24_eta2p1_WPTight_Gsf_LooseDeepTauPFTauHPS30_eta2p1_CrossL1
+ele24Tau30_allFilters = {'passHLTL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3': cms.vstring('hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3'), 'passHLTPreEle24eta2p1WPTightGsfLooseDeepTauPFTauHPS30eta2p1CrossL1': cms.vstring('hltPreEle24eta2p1WPTightGsfLooseDeepTauPFTauHPS30eta2p1CrossL1'), 'passHLTEgammaCandidates': cms.vstring('hltEgammaCandidates'), 'passHLTEGL1EGerAndTauFilter': cms.vstring('hltEGL1EGerAndTauFilter'), 'passHLTEG24L1EGandTauEtFilter': cms.vstring('hltEG24L1EGandTauEtFilter'), 'passHLTEgammaClusterShape': cms.vstring('hltEgammaClusterShape'), 'passHLTEle24erWPTightClusterShapeFilterForTau': cms.vstring('hltEle24erWPTightClusterShapeFilterForTau'), 'passHLTEgammaHoverE': cms.vstring('hltEgammaHoverE'), 'passHLTEle24erWPTightHEFilterForTau': cms.vstring('hltEle24erWPTightHEFilterForTau'), 'passHLTEgammaEcalPFClusterIso': cms.vstring('hltEgammaEcalPFClusterIso'), 'passHLTEle24erWPTightEcalIsoFilterForTau': cms.vstring('hltEle24erWPTightEcalIsoFilterForTau'), 'passHLTEgammaHcalPFClusterIso': cms.vstring('hltEgammaHcalPFClusterIso'), 'passHLTEle24erWPTightHcalIsoFilterForTau': cms.vstring('hltEle24erWPTightHcalIsoFilterForTau'), 'passHLTEle24erWPTightPixelMatchFilterForTau': cms.vstring('hltEle24erWPTightPixelMatchFilterForTau'), 'passHLTEle24erWPTightPMS2FilterForTau': cms.vstring('hltEle24erWPTightPMS2FilterForTau'), 'passHLTEle24erWPTightGsfOneOEMinusOneOPFilterForTau': cms.vstring('hltEle24erWPTightGsfOneOEMinusOneOPFilterForTau'), 'passHLTEle24erWPTightGsfMissingHitsFilterForTau': cms.vstring('hltEle24erWPTightGsfMissingHitsFilterForTau'), 'passHLTEle24erWPTightGsfDetaFilterForTau': cms.vstring('hltEle24erWPTightGsfDetaFilterForTau'), 'passHLTEle24erWPTightGsfDphiFilterForTau': cms.vstring('hltEle24erWPTightGsfDphiFilterForTau'), 'passHLTEgammaEleGsfTrackIso': cms.vstring('hltEgammaEleGsfTrackIso'), 'passHLTEle24erWPTightGsfTrackIsoFilterForTau': cms.vstring('hltEle24erWPTightGsfTrackIsoFilterForTau'), 'passHLTOverlapFilterIsoEle24IsoTau30WPTightGsfCaloJet5': cms.vstring('hltOverlapFilterIsoEle24IsoTau30WPTightGsfCaloJet5'), 'passHLTHpsSelectedPFTausLooseETauWPDeepTauFilter': cms.vstring('hltHpsSelectedPFTausLooseETauWPDeepTauFilter'), 'passHLTHpsL1JetsHLTPFTauLooseEtauWPDeepTauMatch': cms.vstring('hltHpsL1JetsHLTPFTauLooseEtauWPDeepTauMatch'), 'passHLTHpsSelectedPFTau30LooseETauWPDeepTauL1HLTMatched': cms.vstring('hltHpsSelectedPFTau30LooseETauWPDeepTauL1HLTMatched'), 'passHLTHpsOverlapFilterIsoEle24WPTightGsfLooseETauWPDeepTauPFTau30': cms.vstring('hltHpsOverlapFilterIsoEle24WPTightGsfLooseETauWPDeepTauPFTau30')}
+
+#HLT_Ele12_CaloIdL_TrackIdL_IsoVL_PFJet30_v
+ele12pfjet30_allFilters = {}
 
 if '2016' in options['era']:
   options['TnPPATHS']           = cms.vstring("HLT_Ele27_eta2p1_WPTight_Gsf_v*")
@@ -184,21 +193,27 @@ elif '2022' in options['era']:
   options['TnPHLTProbeFilters'] = cms.vstring()
   options['HLTFILTERSTOMEASURE']= {}
   options['HLTFILTERSTOMEASURE'].update(ele30_allFilters) 
-  options['HLTFILTERSTOMEASURE'].update(ele115_allFilters)
-  options['HLTFILTERSTOMEASURE'].update(ele23ele12_allFilters)
-  options['HLTFILTERSTOMEASURE'].update(doubleEle33_leg1_allFilters)
-  options['HLTFILTERSTOMEASURE'].update(doubleEle33_leg2_allFilters)
+  # options['HLTFILTERSTOMEASURE'].update(ele115_allFilters)
+  # options['HLTFILTERSTOMEASURE'].update(ele23ele12_allFilters)
+  # options['HLTFILTERSTOMEASURE'].update(doubleEle33_leg1_allFilters)
+  # options['HLTFILTERSTOMEASURE'].update(doubleEle33_leg2_allFilters)
+  options['HLTFILTERSTOMEASURE'].update(ele24Tau30_allFilters)
 
 elif '2023' in options['era']:
   options['TnPPATHS']           = cms.vstring("HLT_Ele30_WPTight_Gsf_v*")
   options['TnPHLTTagFilters']   = cms.vstring("hltEle30WPTightGsfTrackIsoFilter")
+  # options['TnPPATHS']           = cms.vstring("HLT_Ele23_CaloIdL_TrackIdL_IsoVL_PFJet30_v*")
+  # options['TnPHLTTagFilters']   = cms.vstring("hltEle23CaloIdLTrackIdLIsoVLJet30TrackIsoFilter")
   options['TnPHLTProbeFilters'] = cms.vstring()
   options['HLTFILTERSTOMEASURE']= {}
-  options['HLTFILTERSTOMEASURE'].update(ele30_allFilters) 
-  options['HLTFILTERSTOMEASURE'].update(ele115_allFilters)
-  options['HLTFILTERSTOMEASURE'].update(ele23ele12_allFilters)
-  options['HLTFILTERSTOMEASURE'].update(doubleEle33_leg1_allFilters)
-  options['HLTFILTERSTOMEASURE'].update(doubleEle33_leg2_allFilters)
+  options['HLTFILTERSTOMEASURE'].update(ele30_allFilters)
+  # options['HLTFILTERSTOMEASURE'].update(ele115_allFilters)
+  # options['HLTFILTERSTOMEASURE'].update(ele23ele12_allFilters)
+  # options['HLTFILTERSTOMEASURE'].update(doubleEle33_leg1_allFilters)
+  # options['HLTFILTERSTOMEASURE'].update(doubleEle33_leg2_allFilters)
+  options['HLTFILTERSTOMEASURE'].update(ele24Tau30_allFilters)
+  # options['HLTFILTERSTOMEASURE'].update(ele12pfjet30_allFilters)
+  # options['HLTFILTERSTOMEASURE'].update(ele17pfjet30_allFilters)
 
 # Apply L1 matching (using L1Threshold) when flag contains "L1match" in name
 options['ApplyL1Matching']      = any(['L1match' in flag for flag in options['HLTFILTERSTOMEASURE'].keys()])
@@ -208,7 +223,7 @@ options['L1Threshold']          = varOptions.L1Threshold
 ###################################################################
 ## Define input files for test local run
 ###################################################################
-importTestFiles = 'from EgammaAnalysis.TnPTreeProducer.etc.tnpInputTestFiles_cff import files%s_%s as inputs' % ('AOD' if options['useAOD'] else 'MiniAOD', options['era'])
+importTestFiles = 'from EgammaAnalysis.TnPTreeProducer.etc.tnpInputTestFiles_cff import files%s_%s as inputs' % ('AOD' if options['useAOD'] else 'MiniAOD', options['era'].split("p")[0])
 exec(importTestFiles)
 
 options['INPUT_FILE_NAME'] = inputs['mc' if options['isMC'] else 'data']
@@ -260,7 +275,7 @@ if not options['useAOD']:
 process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
 process.MessageLogger.cerr.threshold = ''
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.MessageLogger.cerr.FwkReport.reportEvery = 1
 
 process.source = cms.Source("PoolSource", fileNames = options['INPUT_FILE_NAME'])
 process.maxEvents = cms.untracked.PSet( input = options['MAXEVENTS'])

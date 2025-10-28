@@ -26,6 +26,28 @@ bool MiniAODTriggerCandProducer<reco::GsfElectron, trigger::TriggerObject>::onli
 }
 
 template <>
+bool MiniAODTriggerCandProducer<reco::GsfElectron, trigger::TriggerObject>::L1TauMatchingRECO(reco::GsfElectronRef ref,
+                              const std::vector<l1t::Tau>& l1taus, float dRmin) {
+
+  for (auto it=l1taus.begin(); it != l1taus.end(); it++) {
+    // apply selections of L1 seeds inside EleTau trigger
+    if (fabs(it->eta())>2.1 || it->et() < 26)
+      continue;
+    if(it->et() < 70 && it->hwIso() == 0)
+      continue;
+
+    float dR = deltaR2(ref->superCluster()->position().eta(), ref->superCluster()->position().phi(),
+                       it->eta(), it->phi());
+
+    if (dR < dRmin*dRmin) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+template <>
 MiniAODTriggerCandProducer<reco::GsfElectron, trigger::TriggerObject>::MiniAODTriggerCandProducer(const edm::ParameterSet& iConfig ):
   filterNames_(iConfig.getParameter<std::vector<std::string> >("filterNames")),
   inputs_(consumes<TRefVector>(iConfig.getParameter<edm::InputTag>("inputs"))),
@@ -34,14 +56,17 @@ MiniAODTriggerCandProducer<reco::GsfElectron, trigger::TriggerObject>::MiniAODTr
   //triggerObjects_(consumes<U>(iConfig.getParameter<edm::InputTag>("objects"))),
   triggerEvent_(consumes<trigger::TriggerEvent>(iConfig.getParameter<edm::InputTag>("objects"))),
   dRMatch_(iConfig.getParameter<double>("dR")),
-  isAND_(iConfig.getParameter<bool>("isAND")) {
+  isAND_(iConfig.getParameter<bool>("isAND")),
+  l1tauToken_(consumes<l1t::TauBxCollection> ( iConfig.getParameter<edm::InputTag>("l1tau"))),
+  L1TauMatch_(iConfig.getParameter<bool>("L1TauMatch")),
+  dRMatchL1Tau_(iConfig.getParameter<double>("dRMatchL1Tau")){
   
   produces<TRefVector>();
 }
 
 template <>
 void MiniAODTriggerCandProducer<reco::GsfElectron, trigger::TriggerObject>::produce(edm::Event &iEvent, const edm::EventSetup &eventSetup) {
-  
+
   edm::Handle<edm::TriggerResults> triggerBits;
   edm::Handle<trigger::TriggerEvent> trEv;
   iEvent.getByToken(triggerEvent_, trEv);
@@ -115,6 +140,18 @@ void MiniAODTriggerCandProducer<reco::GsfElectron, trigger::TriggerObject>::prod
       }
     }
 
+    if (L1TauMatch_)
+    {
+      edm::Handle<l1t::TauBxCollection> l1tau_handle;
+      iEvent.getByToken(l1tauToken_, l1tau_handle);
+      std::vector<l1t::Tau> mergedL1tau;
+      for(auto it=l1tau_handle->begin(0); it!=l1tau_handle->end(0); it++){
+        mergedL1tau.push_back(*it);
+      }
+
+      saveObj = (saveObj && L1TauMatchingRECO(ref, mergedL1tau, dRMatchL1Tau_));
+    }
+
     //std::cout << saveObj << std::endl;
     if (saveObj)
       outColRef->push_back(ref);
@@ -176,6 +213,72 @@ bool MiniAODTriggerCandProducer<reco::RecoEcalCandidate, pat::TriggerObjectStand
       float dR = deltaR(ref->superCluster()->position(), obj.p4());
       if (dR < dRmin)
 	return true;
+    }
+  }
+
+  return false;
+}
+
+template <>
+bool MiniAODTriggerCandProducer<pat::Electron, pat::TriggerObjectStandAlone>::L1TauMatching(pat::ElectronRef ref,
+                              const std::vector<l1t::Tau>& l1taus, float dRmin) {
+
+  for (auto it=l1taus.begin(); it != l1taus.end(); it++) {
+    // apply selections of L1 seeds inside EleTau trigger
+    if (fabs(it->eta())>2.1 || it->et() < 26)
+      continue;
+    if(it->et() < 70 && it->hwIso() == 0)
+      continue;
+
+    float dR = deltaR2(ref->superCluster()->position().eta(), ref->superCluster()->position().phi(),
+                       it->eta(), it->phi());
+
+    if (dR < dRmin*dRmin) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+template <>
+bool MiniAODTriggerCandProducer<pat::Photon, pat::TriggerObjectStandAlone>::L1TauMatching(pat::PhotonRef ref,
+                              const std::vector<l1t::Tau>& l1taus, float dRmin) {
+
+  for (auto it=l1taus.begin(); it != l1taus.end(); it++) {
+    // apply selections of L1 seeds inside EleTau trigger
+    if (fabs(it->eta())>2.1 || it->et() < 26)
+      continue;
+    if(it->et() < 70 && it->hwIso() == 0)
+      continue;
+
+    float dR = deltaR2(ref->superCluster()->position().eta(), ref->superCluster()->position().phi(),
+                       it->eta(), it->phi());
+
+    if (dR < dRmin*dRmin) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+template <>
+bool MiniAODTriggerCandProducer<reco::RecoEcalCandidate, pat::TriggerObjectStandAlone>::L1TauMatching(edm::Ref<std::vector<reco::RecoEcalCandidate>> ref,
+                              const std::vector<l1t::Tau>& l1taus, float dRmin) {
+
+  for (auto it=l1taus.begin(); it != l1taus.end(); it++) {
+    // apply selections of L1 seeds inside EleTau trigger
+    if (fabs(it->eta())>2.1 || it->et() < 26)
+      continue;
+    if(it->et() < 70 && it->hwIso() == 0)
+      continue;
+
+    float dR = deltaR2(ref->superCluster()->position().eta(), ref->superCluster()->position().phi(),
+                       it->eta(), it->phi());
+
+    if (dR < dRmin*dRmin) {
+      return true;
     }
   }
 

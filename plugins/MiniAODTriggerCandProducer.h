@@ -17,6 +17,8 @@
 #include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
 
+#include "DataFormats/L1Trigger/interface/Tau.h" //for stage 2 L1
+
 #include <DataFormats/Math/interface/deltaR.h>
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
@@ -46,6 +48,14 @@ public:
 				 const UCollection* triggerObjects,
 				 const trigger::Keys* keys, float dRmin);
 
+  bool L1TauMatching(TRef ref,
+                     const std::vector<l1t::Tau>& l1taus,
+                     float dRmin);
+
+  bool L1TauMatchingRECO(TRef ref,
+                         const std::vector<l1t::Tau>& l1taus,
+                         float dRmin);
+
  private:
   virtual void produce(edm::Event&, const edm::EventSetup&) override;
   
@@ -55,11 +65,15 @@ public:
   edm::EDGetTokenT<trigger::TriggerEvent> triggerEvent_;
   //edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
   edm::EDGetTokenT<UCollection> triggerObjects_;
-  
+
   float dRMatch_;
   bool isAND_;
   edm::ParameterSetID triggerNamesID_;
   std::map<std::string, unsigned int> trigger_indices;
+
+  edm::EDGetTokenT<l1t::TauBxCollection> l1tauToken_;
+  bool L1TauMatch_;
+  float dRMatchL1Tau_;
 };
 
 template <class T, class U>
@@ -70,7 +84,11 @@ template <class T, class U>
   //triggerObjects_(consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("objects"))),
     triggerObjects_(consumes<UCollection>(iConfig.getParameter<edm::InputTag>("objects"))),
     dRMatch_(iConfig.getParameter<double>("dR")),
-    isAND_(iConfig.getParameter<bool>("isAND")) {
+    isAND_(iConfig.getParameter<bool>("isAND")),
+
+    l1tauToken_(consumes<l1t::TauBxCollection> ( iConfig.getParameter<edm::InputTag>("l1tau"))),
+    L1TauMatch_(iConfig.getParameter<bool>("L1TauMatch")),
+    dRMatchL1Tau_(iConfig.getParameter<double>("dRMatchL1Tau")) {
     
     if(iConfig.existsAs<edm::InputTag>("triggerEvent"))
       triggerEvent_  = mayConsume<trigger::TriggerEvent>(iConfig.getParameter<edm::InputTag>("triggerEvent"));
@@ -130,6 +148,18 @@ template <class T, class U>
 	else
 	  saveObj = (saveObj || onlineOfflineMatching(ref, triggerObjects.product(), filterNames_[f], dRMatch_,triggerBits,triggerNames,iEvent));
       } 
+    }
+
+    if (L1TauMatch_)
+    {
+      edm::Handle<l1t::TauBxCollection> l1tau_handle;
+      iEvent.getByToken(l1tauToken_, l1tau_handle);
+      std::vector<l1t::Tau> mergedL1taus;
+      for(auto it=l1tau_handle->begin(0); it!=l1tau_handle->end(0); it++){
+        mergedL1taus.push_back(*it);
+      }
+
+      saveObj = (saveObj && L1TauMatching(ref, mergedL1taus, dRMatchL1Tau_));
     }
 
     if (saveObj)

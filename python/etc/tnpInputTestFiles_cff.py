@@ -8,11 +8,12 @@ filesMiniAOD_2018 = {
 }
 
 filesMiniAOD_2022 = {
-    'mc' :   cms.untracked.vstring(''),
-    'data' : cms.untracked.vstring('root://cmsxrootd.fnal.gov//store/data/Run2022B/EGamma/MINIAOD/PromptReco-v1/000/355/558/00000/92629520-53fb-4f1d-8465-a15b5504e149.root'),
+    'mc' :   cms.untracked.vstring('root://cmsxrootd.fnal.gov//store/mc/Run3Summer22MiniAODv4/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/MINIAODSIM/130X_mcRun3_2022_realistic_v5-v2/2520000/04a94307-6165-49e9-a8a5-e57182cbb56c.root'),
+    'data' : cms.untracked.vstring('root://cmsxrootd.fnal.gov//store/data/Run2022B/EGamma/MINIAOD/22Sep2023-v2/70000/01921504-9d3d-4993-a46b-e45dc979a2a4.root'),
 }
 
 filesMiniAOD_2023 = {
+    'mc' : cms.untracked.vstring('root://cms-xrd-global.cern.ch//store/mc/Run3Summer23MiniAODv4/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/MINIAODSIM/130X_mcRun3_2023_realistic_v14-v1/2550000/00070982-2c6a-4df6-9af7-530f9155c758.root'),
     'data' : cms.untracked.vstring('root://cms-xrd-global.cern.ch//store/data/Run2023D/EGamma0/MINIAOD/22Sep2023_v2-v1/40000/01953bad-f7fc-496b-a729-e240bde2abc4.root'),
 }
 

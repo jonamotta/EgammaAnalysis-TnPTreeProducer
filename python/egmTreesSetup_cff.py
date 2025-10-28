@@ -35,7 +35,10 @@ def setTagsProbes(process, options):
                                         bits        = cms.InputTag('TriggerResults::' + options['HLTProcessName']),
                                         objects     = cms.InputTag(hltObjects),
                                         dR          = cms.double(0.3),
-                                        isAND       = cms.bool(True)
+                                        isAND       = cms.bool(True),
+                                        l1tau       = cms.InputTag("caloStage2Digis:Tau"),
+                                        L1TauMatch  = cms.bool(False),
+                                        dRMatchL1Tau = cms.double(0.5)
                                     )
 
     ##################### PROBE ELECTRONs ###########################
